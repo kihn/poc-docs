@@ -1,6 +1,6 @@
 ---
 name: skill-codex-safe
-version: 2.0.0
+version: 2.1.0
 description: "Codex CLI に安全に相談する（read-only モード、非対話型実行）"
 allowed-tools:
   - Bash(codex:*)
@@ -11,17 +11,54 @@ allowed-tools:
 Claude Code から Codex CLI に安全に相談するためのスキルです。
 `codex exec` コマンドを使用して非対話型で実行します。
 
+## モデル設定
+
+`--model` オプションでモデルを指定できます。**デフォルトは `gpt-5.2-codex`（最高性能）** を推奨します。
+
+### 利用可能なモデル
+
+| モデル | 説明 | 推奨用途 |
+|--------|------|----------|
+| `gpt-5.2-codex` | 最高性能コーディングモデル（デフォルト推奨） | 複雑な推論、アーキテクチャ設計、リファクタリング |
+| `gpt-5.1-codex-mini` | 軽量・コスト効率モデル | 簡単な質問、コード補完 |
+| `gpt-5.1-codex-max` | 長時間タスク向け最適化モデル | プロジェクト規模の大きな変更 |
+
+**モデル一覧の確認方法**: [Codex Models ドキュメント](https://developers.openai.com/codex/models/)
+
+### モデル指定例
+
+```bash
+# デフォルト（gpt-5.2-codex）で実行
+codex exec --model gpt-5.2-codex --sandbox read-only "質問内容"
+
+# 軽量モデルで高速に実行
+codex exec --model gpt-5.1-codex-mini --sandbox read-only "簡単な質問"
+```
+
 ## Quick Start
 
 ```bash
-# 基本的な使い方（read-only モード）
-codex exec --sandbox read-only "質問や依頼内容"
+# 基本的な使い方（read-only モード、o3モデル）
+codex exec --model gpt-5.2-codex --sandbox read-only "質問や依頼内容"
 
 # 例: コードレビューを依頼
-codex exec --sandbox read-only "このファイルの問題点を指摘して: $(cat src/index.ts)"
+codex exec --model gpt-5.2-codex --sandbox read-only "このファイルの問題点を指摘して: $(cat src/index.ts)"
 
 # 例: 実装方針を相談
-codex exec --sandbox read-only "認証機能の実装方針についてアドバイスください"
+codex exec --model gpt-5.2-codex --sandbox read-only "認証機能の実装方針についてアドバイスください"
+```
+
+## 注意事項
+
+**重要**: Codex CLI は Git リポジトリ内でのみ動作します。このモノレポでは、ルートディレクトリではなく各サブディレクトリ（`poc-backend/`, `poc-flutter-app/`, `poc-docs/`）に移動してから実行してください。
+
+```bash
+# 正しい例
+cd /path/to/poc-backend && codex exec --sandbox read-only "質問"
+
+# エラーになる例（ルートディレクトリから実行）
+codex exec --sandbox read-only "質問"
+# → "Not inside a trusted directory" エラー
 ```
 
 ## 使い方
@@ -29,13 +66,13 @@ codex exec --sandbox read-only "認証機能の実装方針についてアドバ
 ### 1) 読み取り専用で相談（推奨）
 
 ```bash
-codex exec --sandbox read-only "質問内容"
+cd /path/to/poc-backend && codex exec --model gpt-5.2-codex --sandbox read-only "質問内容"
 ```
 
 ### 2) ファイル変更が必要な場合（ユーザー確認後）
 
 ```bash
-codex exec --sandbox workspace-write "変更依頼内容"
+cd /path/to/poc-backend && codex exec --model gpt-5.2-codex --sandbox workspace-write "変更依頼内容"
 ```
 
 ## 安全方針
@@ -57,7 +94,7 @@ codex exec --sandbox workspace-write "変更依頼内容"
 ### コードレビュー依頼
 
 ```bash
-codex exec --sandbox read-only "以下のコードをレビューして、問題点があれば指摘してください:
+codex exec --model gpt-5.2-codex --sandbox read-only "以下のコードをレビューして、問題点があれば指摘してください:
 
 $(cat src/auth/handler.ts)"
 ```
@@ -65,13 +102,13 @@ $(cat src/auth/handler.ts)"
 ### 実装方針の相談
 
 ```bash
-codex exec --sandbox read-only "WebAuthn認証のチャレンジ生成について、セキュリティ上の注意点を教えてください"
+codex exec --model gpt-5.2-codex --sandbox read-only "WebAuthn認証のチャレンジ生成について、セキュリティ上の注意点を教えてください"
 ```
 
 ### エラー解決の相談
 
 ```bash
-codex exec --sandbox read-only "以下のエラーの原因と解決方法を教えてください:
+codex exec --model gpt-5.2-codex --sandbox read-only "以下のエラーの原因と解決方法を教えてください:
 
 $(cat error.log)"
 ```
